@@ -21,55 +21,64 @@ namespace SchoolManagement.Application.Features.AirCraftFlyings.Handlers.Queries
 
         public async Task<List<AirCraftFlyingDto>> Handle(GetAirCraftFlyingListByDepartmentNameIdRequest request, CancellationToken cancellationToken)
         {
-            IQueryable<AirCraftFlying> AirCraftFlyings = _AirCraftFlyingRepository.FilterWithInclude(x => x.AirCraftNameId == request.AirCraftNameId && x.DepartmentNameId == request.DepartmentNameId , "DepartmentName", "AirCraftName");
-            var totalCount = AirCraftFlyings.Count();
-            AirCraftFlyings = AirCraftFlyings.OrderByDescending(x => x.Date);
-            var AirCraftFlyingDtos = _mapper.Map<List<AirCraftFlyingDto>>(AirCraftFlyings);
 
-         //AIrcraft in flight Code
-          var aircraftFlyingDto = new List<AirCraftFlyingDto>();
-          var aircraftFlyingDtoReturn = new List<AirCraftFlyingDto>();
+      try
+      {
+        IQueryable<AirCraftFlying> AirCraftFlyings = _AirCraftFlyingRepository.FilterWithInclude(x => x.AirCraftNameId == request.AirCraftNameId && x.DepartmentNameId == request.DepartmentNameId, "DepartmentName", "AirCraftName");
+        var totalCount = AirCraftFlyings.Count();
+        AirCraftFlyings = AirCraftFlyings.OrderByDescending(x => x.Date);
+        var AirCraftFlyingDtos = _mapper.Map<List<AirCraftFlyingDto>>(AirCraftFlyings);
 
-          foreach (var item in AirCraftFlyingDtos)
+        //AIrcraft in flight Code
+        var aircraftFlyingDto = new List<AirCraftFlyingDto>();
+        var aircraftFlyingDtoReturn = new List<AirCraftFlyingDto>();
+
+        foreach (var item in AirCraftFlyingDtos)
+        {
+          // Startup Time Conversion - skip calculations when StartUp or Endurance is null/empty
+          string input = item.StartUp;
+          if (!string.IsNullOrEmpty(input) && !string.IsNullOrEmpty(item.Endurance))
           {
-            // Startup Time Conversion
-
-            string input = item.StartUp;
-            if (!(String.IsNullOrEmpty(input)))
-            { 
-              var timeFromInput = DateTime.ParseExact(input, "H:m", null, DateTimeStyles.None);
-
+            if (DateTime.TryParseExact(input, "H:m", null, DateTimeStyles.None, out var timeFromInput))
+            {
               string timeIn12HourFormatForDisplay = timeFromInput.ToString("hh:mm tt", CultureInfo.InvariantCulture);
 
+              // Time Calculation - use TryParse to avoid exception on invalid format
+              if (TimeSpan.TryParse(DateTime.Now.ToString("HH:mm"), out var currentTime) &&
+                  TimeSpan.TryParse(item.StartUp, out var startup) &&
+                  TimeSpan.TryParse(item.Endurance, out var endTime))
+              {
+                // Running Hour and Rest Hour Calculation
+                var runningTime = currentTime - startup;
+                var restTime = endTime - currentTime;
+                item.RunningHour = runningTime;
+                item.RestHour = restTime;
 
-              //Time Calculation
+                // Running hour and rest hour percentage
+                var duration = endTime - startup;
+                if (duration.TotalMinutes > 0)
+                {
+                  var runningPercentage = (runningTime.TotalMinutes * 100) / duration.TotalMinutes;
+                  var restPercentage = 100 - runningPercentage;
+                  item.RunningPercentage = Math.Round(runningPercentage, 0);
+                  item.RestPercentage = Math.Round(restPercentage, 0);
+                }
 
-              TimeSpan currentTime = TimeSpan.Parse(DateTime.Now.ToString("HH:mm"));
-              TimeSpan startup = TimeSpan.Parse(item.StartUp);
-              TimeSpan endTime = TimeSpan.Parse(item.Endurance);
-
-              // Running Hour and Rest Hour Calculation
-              var runningTime = currentTime - startup;
-              var restTime = endTime - currentTime;
-              item.RunningHour = runningTime;
-              item.RestHour = restTime;
-
-              // Running hour and rest hour percentage
-              var duration = endTime - startup;
-              var runningPercentage = (runningTime * 100) / duration;
-
-              var restPercentage = (100 - runningPercentage);
-
-              item.RunningPercentage = Math.Round(runningPercentage, 0);
-              item.RestPercentage = Math.Round(restPercentage, 0);
-              item.StartUp = timeIn12HourFormatForDisplay;
-
-              
+                item.StartUp = timeIn12HourFormatForDisplay;
+              }
             }
-            aircraftFlyingDto.Add(item);
           }
-          return aircraftFlyingDto;
+          aircraftFlyingDto.Add(item);
         }
+        return aircraftFlyingDto;
+
+      }catch(Exception ex)
+      {
+        return null;
+      }
+
+
+    }
 
     }
 }
