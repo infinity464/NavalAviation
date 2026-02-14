@@ -156,7 +156,7 @@ export class NewMaintenancePlanningComponent implements OnInit {
       maintenanceSubCategoryId: [],
       maintenancePlanningStatusId: [1],
       departmentNameId: [],
-      reportCalculationDay: [],
+      reportCalculationDay: [null],
       lastInspDate: [],
       nestInspDate: [],
       //lastInspectionDay:[''],
@@ -484,15 +484,13 @@ export class NewMaintenancePlanningComponent implements OnInit {
   onSubmit() {
     const id = this.MaintenancePlanningForm.get("maintenancePlanningId").value;
     console.log(this.MaintenancePlanningForm);
+    const lastInspVal = this.MaintenancePlanningForm.get("lastInspDate").value;
+    const nestInspVal = this.MaintenancePlanningForm.get("nestInspDate").value;
     this.MaintenancePlanningForm.get("lastInspDate").setValue(
-      new Date(
-        this.MaintenancePlanningForm.get("lastInspDate").value
-      ).toUTCString()
+      lastInspVal ? new Date(lastInspVal).toUTCString() : null
     );
     this.MaintenancePlanningForm.get("nestInspDate").setValue(
-      new Date(
-        this.MaintenancePlanningForm.get("nestInspDate").value
-      ).toUTCString()
+      nestInspVal ? new Date(nestInspVal).toUTCString() : null
     );
     // this.MaintenancePlanningForm.get('commencingDate').setValue((new Date(this.MaintenancePlanningForm.get('commencingDate').value)).toUTCString());
     // this.MaintenancePlanningForm.get('plannedCompletionDate').setValue((new Date(this.MaintenancePlanningForm.get('plannedCompletionDate').value)).toUTCString());
@@ -500,7 +498,8 @@ export class NewMaintenancePlanningComponent implements OnInit {
     const formData = new FormData();
     for (const key of Object.keys(this.MaintenancePlanningForm.value)) {
       const value = this.MaintenancePlanningForm.value[key];
-      formData.append(key, value);
+      // Send empty string for null/undefined so API accepts nullable fields (e.g. ReportCalculationDay)
+      formData.append(key, value == null ? '' : value);
     }
 
     if (id) {

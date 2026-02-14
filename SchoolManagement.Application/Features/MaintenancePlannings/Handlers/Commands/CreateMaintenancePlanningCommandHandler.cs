@@ -63,8 +63,10 @@ namespace SchoolManagement.Application.Features.MaintenancePlannings.Handlers.Co
                 MaintenancePlanning.VerificationCompletStatus = 0;
                 MaintenancePlanning.CompletStatus = 0;
                 MaintenancePlanning = await _unitOfWork.Repository<MaintenancePlanning>().Add(MaintenancePlanning);
-                MaintenancePlanning.LastInspDate = MaintenancePlanning.LastInspDate.Value.AddDays(1.0);
-                MaintenancePlanning.NestInspDate = MaintenancePlanning.NestInspDate.Value.AddDays(1.0);
+                if (MaintenancePlanning.LastInspDate.HasValue)
+                    MaintenancePlanning.LastInspDate = MaintenancePlanning.LastInspDate.Value.AddDays(1.0);
+                if (MaintenancePlanning.NestInspDate.HasValue)
+                    MaintenancePlanning.NestInspDate = MaintenancePlanning.NestInspDate.Value.AddDays(1.0);
                 if(request.MaintenancePlanningDto.MaintenanceCategoryId == 2 || request.MaintenancePlanningDto.MaintenanceCategoryId == 36) {
                   if (request.MaintenancePlanningDto.NestInspDate == defaultDate)
                   {

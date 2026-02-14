@@ -59,7 +59,8 @@ namespace SchoolManagement.Application.Features.MaintenancePlannings.Handlers.Co
 
 
             _mapper.Map(request.UpdateMaintenancePlanningDto, MaintenancePlanning);
-            MaintenancePlanning.LastInspDate = MaintenancePlanning.LastInspDate.Value.AddDays(1.0);
+            if (MaintenancePlanning.LastInspDate.HasValue)
+                MaintenancePlanning.LastInspDate = MaintenancePlanning.LastInspDate.Value.AddDays(1.0);
             //MaintenancePlanning.NestInspDate = MaintenancePlanning.NestInspDate.Value.AddDays(1.0);
             if (request.UpdateMaintenancePlanningDto.NestInspDate == defaultDate)
             {
