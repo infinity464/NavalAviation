@@ -65,11 +65,12 @@ namespace SchoolManagement.Application.Features.Acceptances.Handlers.Commands
 
 
             _mapper.Map(request.AcceptanceDto, Acceptance);
-            //Acceptance.WorkOrderDate = Acceptance.WorkOrderDate.Value.AddDays(1.0);
-            Acceptance.SftDate = Acceptance.SftDate.Value.AddDays(1.0);
-            Acceptance.WarrantyFrom = Acceptance.WarrantyFrom.Value.AddDays(1.0);
-            Acceptance.WarrantyTo = Acceptance.WarrantyTo.Value.AddDays(1.0);
-            //Acceptance.DateOfManufacture = Acceptance.DateOfManufacture.Value.AddDays(1.0);
+            if (Acceptance.SftDate.HasValue)
+                Acceptance.SftDate = Acceptance.SftDate.Value.AddDays(1.0);
+            if (Acceptance.WarrantyFrom.HasValue)
+                Acceptance.WarrantyFrom = Acceptance.WarrantyFrom.Value.AddDays(1.0);
+            if (Acceptance.WarrantyTo.HasValue)
+                Acceptance.WarrantyTo = Acceptance.WarrantyTo.Value.AddDays(1.0);
             if(request.AcceptanceDto.SftDate == defaultDate)
             {
                 Acceptance.SftDate = null;

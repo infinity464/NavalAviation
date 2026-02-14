@@ -57,8 +57,10 @@ namespace SchoolManagement.Application.Features.MaintenanceSchedules.Handlers.Co
                 MaintenanceSchedules.MaintenanceDocument = request.MaintenanceScheduleDto.MaintenanceDocument ?? "files/maintenance-schedules/" + uniqueFileName;
                 MaintenanceSchedules.VerificationCompletStatus = 0;
                 MaintenanceSchedules = await _unitOfWork.Repository<MaintenanceSchedule>().Add(MaintenanceSchedules);
-                MaintenanceSchedules.StartInspDate = MaintenanceSchedules.StartInspDate.Value.AddDays(1.0);
-                MaintenanceSchedules.EndInspDate = MaintenanceSchedules.EndInspDate.Value.AddDays(1.0);
+                if (MaintenanceSchedules.StartInspDate.HasValue)
+                    MaintenanceSchedules.StartInspDate = MaintenanceSchedules.StartInspDate.Value.AddDays(1.0);
+                if (MaintenanceSchedules.EndInspDate.HasValue)
+                    MaintenanceSchedules.EndInspDate = MaintenanceSchedules.EndInspDate.Value.AddDays(1.0);
 
                 await _unitOfWork.Save();
 

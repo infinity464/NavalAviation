@@ -51,7 +51,8 @@ namespace SchoolManagement.Application.Features.MaintenanceSchedules.Handlers.Co
 
             }
             _mapper.Map(request.UpdateMaintenanceScheduleDto, MaintenanceSchedule);
-            MaintenanceSchedule.StartInspDate = MaintenanceSchedule.StartInspDate.Value.AddDays(1.0);
+            if (MaintenanceSchedule.StartInspDate.HasValue)
+                MaintenanceSchedule.StartInspDate = MaintenanceSchedule.StartInspDate.Value.AddDays(1.0);
 
             MaintenanceSchedule.MaintenanceDocument = request.UpdateMaintenanceScheduleDto.Doc != null ? "files/maintenance-schedules/" + uniqueFileName : MaintenanceSchedule.MaintenanceDocument.Replace("https://localhost:44395/Content/", String.Empty);
             await _unitOfWork.Repository<MaintenanceSchedule>().Update(MaintenanceSchedule);

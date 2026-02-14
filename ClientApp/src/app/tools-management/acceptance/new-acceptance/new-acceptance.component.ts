@@ -562,27 +562,29 @@ export class NewAcceptanceComponent implements OnInit {
   onSubmit() {
     const id = this.AcceptanceForm.get("acceptanceId").value;
 
-    //this.AcceptanceForm.get('dateOfDelivery').setValue((new Date(this.AcceptanceForm.get('dateOfDelivery').value)).toUTCString()) ;
+    const sftDateVal = this.AcceptanceForm.get("sftDate").value;
+    const warrantyFromVal = this.AcceptanceForm.get("warrantyFrom").value;
+    const warrantyToVal = this.AcceptanceForm.get("warrantyTo").value;
+    const deliveryDateVal = this.AcceptanceForm.get("deliveryDate").value;
     this.AcceptanceForm.get("sftDate").setValue(
-      new Date(this.AcceptanceForm.get("sftDate").value).toUTCString()
+      sftDateVal ? new Date(sftDateVal).toUTCString() : null
     );
     this.AcceptanceForm.get("warrantyFrom").setValue(
-      new Date(this.AcceptanceForm.get("warrantyFrom").value).toUTCString()
+      warrantyFromVal ? new Date(warrantyFromVal).toUTCString() : null
     );
     this.AcceptanceForm.get("warrantyTo").setValue(
-      new Date(this.AcceptanceForm.get("warrantyTo").value).toUTCString()
+      warrantyToVal ? new Date(warrantyToVal).toUTCString() : null
     );
     this.AcceptanceForm.get("deliveryDate").setValue(
-      new Date(this.AcceptanceForm.get("deliveryDate").value).toUTCString()
+      deliveryDateVal ? new Date(deliveryDateVal).toUTCString() : null
     );
-    //this.AcceptanceForm.get('dateOfManufacture').setValue((new Date(this.AcceptanceForm.get('dateOfManufacture').value)).toUTCString());
 
     console.log(this.AcceptanceForm.value);
 
     const formData = new FormData();
     for (const key of Object.keys(this.AcceptanceForm.value)) {
       const value = this.AcceptanceForm.value[key];
-      formData.append(key, value);
+      formData.append(key, value == null ? "" : value);
     }
 
     console.log(this.AcceptanceForm.value);

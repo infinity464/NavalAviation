@@ -402,14 +402,19 @@ export class NewMaintenanceScheduleComponent implements OnInit {
   }
   onSubmit() {
     const id = this.MaintenanceScheduleForm.get('maintenanceScheduleId').value;
-    //console.log(this.MaintenanceScheduleForm)
-    this.MaintenanceScheduleForm.get('startInspDate').setValue((new Date(this.MaintenanceScheduleForm.get('startInspDate').value)).toUTCString());
-    this.MaintenanceScheduleForm.get('endInspDate').setValue((new Date(this.MaintenanceScheduleForm.get('endInspDate').value)).toUTCString());
+    const startInspVal = this.MaintenanceScheduleForm.get('startInspDate').value;
+    const endInspVal = this.MaintenanceScheduleForm.get('endInspDate').value;
+    this.MaintenanceScheduleForm.get('startInspDate').setValue(
+      startInspVal ? new Date(startInspVal).toUTCString() : null
+    );
+    this.MaintenanceScheduleForm.get('endInspDate').setValue(
+      endInspVal ? new Date(endInspVal).toUTCString() : null
+    );
     console.log(this.MaintenanceScheduleForm.value)
     const formData = new FormData();
     for (const key of Object.keys(this.MaintenanceScheduleForm.value)) {
       const value = this.MaintenanceScheduleForm.value[key];
-      formData.append(key, value);
+      formData.append(key, value == null ? '' : value);
     }
 
 

@@ -59,11 +59,12 @@ namespace SchoolManagement.Application.Features.Acceptances.Handlers.Commands
 
                 acceptances = await _unitOfWork.Repository<Acceptance>().Add(acceptances);
                 acceptances.VerificationCompletStatus = 0;
-                //acceptances.WorkOrderDate = acceptances.WorkOrderDate.Value.AddDays(1.0);
-                acceptances.SftDate = acceptances.SftDate.Value.AddDays(1.0);
-                acceptances.WarrantyFrom = acceptances.WarrantyFrom.Value.AddDays(1.0);
-                acceptances.WarrantyTo = acceptances.WarrantyTo.Value.AddDays(1.0);
-                //acceptances.DateOfManufacture = acceptances.DateOfManufacture.Value.AddDays(1.0);
+                if (acceptances.SftDate.HasValue)
+                    acceptances.SftDate = acceptances.SftDate.Value.AddDays(1.0);
+                if (acceptances.WarrantyFrom.HasValue)
+                    acceptances.WarrantyFrom = acceptances.WarrantyFrom.Value.AddDays(1.0);
+                if (acceptances.WarrantyTo.HasValue)
+                    acceptances.WarrantyTo = acceptances.WarrantyTo.Value.AddDays(1.0);
                 if(request.AcceptanceDto.SftDate == defaultDate)
                 {
                     acceptances.SftDate = null;
