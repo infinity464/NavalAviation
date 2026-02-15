@@ -13,7 +13,12 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatStepperModule } from "@angular/material/stepper";
 import { MatDatepickerModule } from "@angular/material/datepicker";
-import { MatNativeDateModule } from "@angular/material/core";
+import {
+  NativeDateAdapter,
+  DateAdapter,
+  MAT_DATE_FORMATS,
+  MatNativeDateModule,
+} from "@angular/material/core";
 import { MaterialFileInputModule } from "ngx-material-file-input";
 import { HttpClientModule } from "@angular/common/http";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
@@ -41,6 +46,46 @@ import { NewRequiredSparesForMaintenanceComponent } from './requiredsparesformai
 import {MaintainenceStateListComponent} from './maintainencestate/maintainencestate-list/maintainencestate-list.component';
 import {MaintainenceStateViewListComponent} from './maintainencestate/maintainencestateview-list/maintainencestateview-list.component'
 
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** Custom adapter so datepicker displays DD MMM YYYY (e.g. 01 Feb 2026) */
+export class MaintenanceDateAdapter extends NativeDateAdapter {
+  format(date: Date, displayFormat: object | string): string {
+    if (displayFormat === "input") {
+      const day = date.getDate().toString().padStart(2, "0");
+      const month = MONTH_NAMES[date.getMonth()];
+      const year = date.getFullYear();
+      return `${day} ${month} ${year}`;
+    }
+    return date.toDateString();
+  }
+  parse(value: any): Date | null {
+    if (typeof value === "string") {
+      const parts = value.trim().split(/\s+/);
+      if (parts.length >= 3) {
+        const day = parseInt(parts[0], 10);
+        const monthStr = parts[1];
+        const year = parseInt(parts[2], 10);
+        const month = MONTH_NAMES.findIndex((m) => m.toLowerCase() === monthStr.toLowerCase());
+        if (!isNaN(day) && month >= 0 && !isNaN(year)) {
+          return new Date(year, month, day);
+        }
+      }
+    }
+    return super.parse(value);
+  }
+}
+
+/** Date display/parse format: DD MMM YYYY (e.g. 01 Feb 2026) */
+export const MAINTENANCE_DATE_FORMATS = {
+  parse: { dateInput: "dd MMM yyyy" },
+  display: {
+    dateInput: "input",
+    monthYearLabel: "MMM yyyy",
+    dateA11yLabel: "dd MMM yyyy",
+    monthYearA11yLabel: "MMMM yyyy",
+  },
+};
 
 @NgModule({
   declarations: [
@@ -88,6 +133,10 @@ import {MaintainenceStateViewListComponent} from './maintainencestate/maintainen
     HttpClientModule,
     MatAutocompleteModule,
     MatTooltipModule,
+  ],
+  providers: [
+    { provide: DateAdapter, useClass: MaintenanceDateAdapter },
+    { provide: MAT_DATE_FORMATS, useValue: MAINTENANCE_DATE_FORMATS },
   ],
 })
 export class MaintenecePlanningModule {}

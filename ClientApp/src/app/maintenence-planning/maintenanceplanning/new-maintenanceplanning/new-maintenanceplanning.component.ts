@@ -249,45 +249,65 @@ export class NewMaintenancePlanningComponent implements OnInit {
   }
 
   /**
+   * Uses local calendar date so 01 Jan 2026 + 3 months = 01 Apr 2026 (not 31 Mar).
+   * Avoids timezone shifting when the stored date is UTC.
+   */
+  private addMonthsUtc(date: Date, months: number): Date {
+    const y = date.getFullYear();
+    const m = date.getMonth();
+    const d = date.getDate();
+    return new Date(y, m + months, d, 0, 0, 0, 0);
+  }
+
+  private addYearsUtc(date: Date, years: number): Date {
+    const y = date.getFullYear();
+    const m = date.getMonth();
+    const d = date.getDate();
+    return new Date(y + years, m, d, 0, 0, 0, 0);
+  }
+
+  private addDaysUtc(date: Date, days: number): Date {
+    const y = date.getFullYear();
+    const m = date.getMonth();
+    const d = date.getDate();
+    return new Date(y, m, d + days, 0, 0, 0, 0);
+  }
+
+  /**
    * Parses sub category name (e.g. "12 Months", "3 Month", "Weekly", "5 years", "14 year SSI") and
-   * returns the next inspection date by adding the interval to lastDate. Returns null if no pattern matches.
+   * returns the next inspection date by adding the interval to lastDate. Uses UTC to avoid off-by-one day.
    */
   private getNextInspectionDateFromName(lastDate: Date, subCategoryName: string): Date | null {
     if (!subCategoryName || typeof subCategoryName !== "string") return null;
     const name = subCategoryName.trim().toLowerCase();
-    const next = new Date(lastDate.getTime());
+    const last = new Date(lastDate.getTime());
 
     // Weekly or N week(s)
     const weeklyMatch = name.match(/^weekly$/);
     if (weeklyMatch) {
-      next.setDate(next.getDate() + 7);
-      return next;
+      return this.addDaysUtc(last, 7);
     }
     const weeksMatch = name.match(/(\d+)\s*week(s)?/);
     if (weeksMatch) {
-      next.setDate(next.getDate() + parseInt(weeksMatch[1], 10) * 7);
-      return next;
+      return this.addDaysUtc(last, parseInt(weeksMatch[1], 10) * 7);
     }
 
     // N day(s)
     const daysMatch = name.match(/(\d+)\s*day(s)?/);
     if (daysMatch) {
-      next.setDate(next.getDate() + parseInt(daysMatch[1], 10));
-      return next;
+      return this.addDaysUtc(last, parseInt(daysMatch[1], 10));
     }
 
     // N month(s) - e.g. 3 Month, 6 months, 12 Months, 72 month
     const monthsMatch = name.match(/(\d+)\s*month(s)?/);
     if (monthsMatch) {
-      next.setMonth(next.getMonth() + parseInt(monthsMatch[1], 10));
-      return next;
+      return this.addMonthsUtc(last, parseInt(monthsMatch[1], 10));
     }
 
     // N year(s) - e.g. 12 Year, 5 years, 14 years, 14 year SSI
     const yearsMatch = name.match(/(\d+)\s*year(s)?/);
     if (yearsMatch) {
-      next.setFullYear(next.getFullYear() + parseInt(yearsMatch[1], 10));
-      return next;
+      return this.addYearsUtc(last, parseInt(yearsMatch[1], 10));
     }
 
     return null;
@@ -310,8 +330,7 @@ export class NewMaintenancePlanningComponent implements OnInit {
 
       const totalDays = subCat.totalDaysCount ?? 0;
       if (totalDays > 0) {
-        next = new Date(last);
-        next.setDate(next.getDate() + totalDays);
+        next = this.addDaysUtc(last, totalDays);
       } else if (subCat.subCategoryName) {
         next = this.getNextInspectionDateFromName(last, subCat.subCategoryName);
       }
