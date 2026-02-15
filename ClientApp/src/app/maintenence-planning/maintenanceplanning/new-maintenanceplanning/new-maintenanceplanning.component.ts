@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ActivatedRoute, Router } from "@angular/router";
 import { MaintenancePlanningService } from "../../service/MaintenancePlanning.service";
+import { MaintenanceSubCategoryService } from "../../service/maintenanceSubCategory.service";
 import { ConfirmService } from "../../../core/service/confirm.service";
 import { SelectedModel } from "src/app/core/models/selectedModel";
 import { MaintenancePlanning } from "../../models/MaintenancePlanning";
@@ -66,6 +67,7 @@ export class NewMaintenancePlanningComponent implements OnInit {
     private authService: AuthService,
     private confirmService: ConfirmService,
     private MaintenancePlanningService: MaintenancePlanningService,
+    private MaintenanceSubCategoryService: MaintenanceSubCategoryService,
     private fb: FormBuilder,
     private router: Router,
     private route: ActivatedRoute
@@ -242,6 +244,81 @@ export class NewMaintenancePlanningComponent implements OnInit {
       this.selectedExtensionValue = res;
       (this.getsubcategoryid = this.selectedExtensionValue[0].value),
         (this.getextensionname = this.selectedExtensionValue[0].text);
+      this.calculateNextInspectionDate(maintenanceSubCategoryId);
+    });
+  }
+
+  /**
+   * Parses sub category name (e.g. "12 Months", "3 Month", "Weekly", "5 years", "14 year SSI") and
+   * returns the next inspection date by adding the interval to lastDate. Returns null if no pattern matches.
+   */
+  private getNextInspectionDateFromName(lastDate: Date, subCategoryName: string): Date | null {
+    if (!subCategoryName || typeof subCategoryName !== "string") return null;
+    const name = subCategoryName.trim().toLowerCase();
+    const next = new Date(lastDate.getTime());
+
+    // Weekly or N week(s)
+    const weeklyMatch = name.match(/^weekly$/);
+    if (weeklyMatch) {
+      next.setDate(next.getDate() + 7);
+      return next;
+    }
+    const weeksMatch = name.match(/(\d+)\s*week(s)?/);
+    if (weeksMatch) {
+      next.setDate(next.getDate() + parseInt(weeksMatch[1], 10) * 7);
+      return next;
+    }
+
+    // N day(s)
+    const daysMatch = name.match(/(\d+)\s*day(s)?/);
+    if (daysMatch) {
+      next.setDate(next.getDate() + parseInt(daysMatch[1], 10));
+      return next;
+    }
+
+    // N month(s) - e.g. 3 Month, 6 months, 12 Months, 72 month
+    const monthsMatch = name.match(/(\d+)\s*month(s)?/);
+    if (monthsMatch) {
+      next.setMonth(next.getMonth() + parseInt(monthsMatch[1], 10));
+      return next;
+    }
+
+    // N year(s) - e.g. 12 Year, 5 years, 14 years, 14 year SSI
+    const yearsMatch = name.match(/(\d+)\s*year(s)?/);
+    if (yearsMatch) {
+      next.setFullYear(next.getFullYear() + parseInt(yearsMatch[1], 10));
+      return next;
+    }
+
+    return null;
+  }
+
+  /**
+   * Calculates Next Inspection Date from Last Inspection Date + sub category interval.
+   * Uses totalDaysCount from API when > 0; otherwise parses sub category name (e.g. "12 Months", "Weekly", "5 years").
+   * Only for date-based categories (2 or 36). User can still change the value manually.
+   */
+  calculateNextInspectionDate(subCategoryId?: number): void {
+    const category = this.category;
+    if (category != "2" && category != "36") return;
+    const subId = subCategoryId ?? this.MaintenancePlanningForm.get("maintenanceSubCategoryId")?.value;
+    const lastInspDate = this.MaintenancePlanningForm.get("lastInspDate")?.value;
+    if (!subId || subId === 0 || !lastInspDate) return;
+    this.MaintenanceSubCategoryService.find(subId).subscribe((subCat) => {
+      const last = new Date(lastInspDate);
+      let next: Date | null = null;
+
+      const totalDays = subCat.totalDaysCount ?? 0;
+      if (totalDays > 0) {
+        next = new Date(last);
+        next.setDate(next.getDate() + totalDays);
+      } else if (subCat.subCategoryName) {
+        next = this.getNextInspectionDateFromName(last, subCat.subCategoryName);
+      }
+
+      if (next) {
+        this.MaintenancePlanningForm.get("nestInspDate")?.setValue(next, { emitEvent: false });
+      }
     });
   }
   onMaintenancePlanningListSelectionChange(dropdown) {

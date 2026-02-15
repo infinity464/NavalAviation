@@ -277,6 +277,7 @@
                       matInput
                       [matDatepicker]="frompicker"
                       formControlName="lastInspDate"
+                      (dateChange)="calculateNextInspectionDate()"
                     />
                     <mat-datepicker-toggle
                       matSuffix
@@ -289,8 +290,8 @@
                   *ngIf="role != userRole.CO && (category == '2' || category == '36')"
                   class="col-xl-6 col-lg-6 col-md-6 col-sm-12 mb-2"
                 ></div>
-                <!-- <div
-                  *ngIf="category == '2' || category == '36'"
+                <div
+                  *ngIf="role != userRole.CO && (category == '2' || category == '36')"
                   class="col-xl-6 col-lg-6 col-md-6 col-sm-12 mb-2"
                 >
                   <mat-form-field
@@ -311,9 +312,9 @@
                   </mat-form-field>
                 </div>
                 <div
-                  *ngIf="category == '2' || category == '36'"
+                  *ngIf="role != userRole.CO && (category == '2' || category == '36')"
                   class="col-xl-6 col-lg-6 col-md-6 col-sm-12 mb-2"
-                ></div> -->
+                ></div>
                 <div
                   *ngIf="role != userRole.CO && (category == '25' || category == '38')"
                   class="col-xl-6 col-lg-6 col-md-6 col-sm-12 mb-2"
