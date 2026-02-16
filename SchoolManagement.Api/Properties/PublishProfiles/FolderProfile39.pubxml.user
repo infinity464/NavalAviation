@@ -1,4 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- https://go.microsoft.com/fwlink/?LinkID=208121. -->
 <Project>
+  <PropertyGroup>
+    <_PublishTargetUrl>C:\Users\infinity\Desktop\Naval_Avation</_PublishTargetUrl>
+    <History>True|2026-02-15T09:45:50.1303653Z||;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
 </Project>

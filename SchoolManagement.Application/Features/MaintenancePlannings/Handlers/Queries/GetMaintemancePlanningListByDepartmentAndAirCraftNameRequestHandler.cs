@@ -20,11 +20,19 @@ namespace SchoolManagement.Application.Features.MaintenancePlannings.Handlers.Qu
 
         public async Task<List<MaintenancePlanningDto>> Handle(GetMaintemancePlanningListByDepartmentAndAirCraftNameRequest request, CancellationToken cancellationToken)
         {
-            IQueryable<MaintenancePlanning> MaintenancePlannings = _MaintenancePlanningRepository.FilterWithInclude(x => x.AirCraftNameId == request.AirCraftNameId && x.DepartmentNameId == request.DepartmentNameId && x.CompletStatus !=1 , "DepartmentName", "AirCraftName", "MaintenanceType", "MaintenanceCategory", "MaintenanceSubCategory", "MaintenancePlanningStatus").OrderBy(x => Convert.ToInt32(x.MaintenanceSubCategory.Remarks));
 
-            var MaintenancePlanningDtos = _mapper.Map<List<MaintenancePlanningDto>>(MaintenancePlannings);
+      try
+      {
+        IQueryable<MaintenancePlanning> MaintenancePlannings = _MaintenancePlanningRepository.FilterWithInclude(x => x.AirCraftNameId == request.AirCraftNameId && x.DepartmentNameId == request.DepartmentNameId && x.CompletStatus != 1, "DepartmentName", "AirCraftName", "MaintenanceType", "MaintenanceCategory", "MaintenanceSubCategory", "MaintenancePlanningStatus").OrderBy(x => x.MaintenanceSubCategoryId ?? 0);
 
-            return MaintenancePlanningDtos;
+        var MaintenancePlanningDtos = _mapper.Map<List<MaintenancePlanningDto>>(MaintenancePlannings);
+
+        return MaintenancePlanningDtos;
+      }catch (Exception ex)
+      {
+        return null;
+      }
+          
         }
 
     }
